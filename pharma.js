@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer-core');
 const os = require('os')
+const db = require('./config/db')
 
 const crawlUrl = 'https://medex.com.bd/companies'
 
