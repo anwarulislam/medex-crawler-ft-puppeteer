@@ -1,0 +1,20 @@
+{
+  "name": "medex-crawler",
+  "version": "1.0.0",
+  "description": "A web crawler for medex.com.bd",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "medex",
+    "crawler",
+    "puppeteer"
+  ],
+  "author": "Anwarul Islam",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "puppeteer-core": "^7.1.0"
+  }
+}
