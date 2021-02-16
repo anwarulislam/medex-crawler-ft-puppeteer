@@ -2,32 +2,29 @@ const puppeteer = require('puppeteer-core');
 const { chromiumPath, chromeConfig } = require('./config/chromePath')
 const Generic = require('./model/Generic')
 
-const crawlUrl = 'https://medex.com.bd/generics'
+const crawlUrl = 'https://medex.com.bd/generics/'
+
+var minPage = 1;
+var maxPage = 10;
 
 let scrape = async () => {
     const browser = await puppeteer.launch(chromeConfig)
     const page = await browser.newPage();
 
-    await page.goto(crawlUrl, {
-        waitUntil: 'networkidle2',
-    });
 
-    var results = []; // variable to hold collection of all book titles and prices
-    var maxPageNumber = 10; // this is hardcoded last catalogue page, you can set it dunamically if you wish
+    await gotoPage(page)
+
+    var results = [];
 
     results = results.concat(await extractedEvaluateCall(page));
-    // results = await extractedEvaluateCall(page);
 
-    // this is where next button on page clicked to jump to another page
-
-    while (await page.$('.pagination .page-item:last-child a.page-link')) {
+    while (minPage !== maxPage) {
+        minPage++
         await Promise.all([
-            page.click('.pagination .page-item:last-child a.page-link'),
+            gotoPage(page),
             page.waitForNavigation({ waitUntil: 'networkidle0' }),
         ]);
 
-        // call and wait extractedEvaluateCall and concatenate results every iteration.
-        // You can use results.push, but will get collection of collections at the end of iteration
         results = results.concat(await extractedEvaluateCall(page));
     }
 
@@ -36,23 +33,76 @@ let scrape = async () => {
     return results;
 };
 
+async function gotoPage(page) {
+    let p = await page.goto(crawlUrl + minPage, { waitUntil: 'networkidle2', });
+    if (p._status == 404) {
+        minPage++
+        return await gotoPage(page)
+    }
+    return p
+}
+
 async function extractedEvaluateCall(page) {
     // just extracted same exact logic in separate function
     // this function should use async keyword in order to work and take page as argument
     return page.evaluate(() => {
-        let data = [];
-        let elements = document.querySelectorAll('a.hoverable-block.darker');
-        // return elements;
-        for (var element of elements) {
-            var url = element.href;
 
-            data.push({
-                title: element.querySelector('.dcind-title').innerText,
-                description: element.querySelector('.dcind').innerText,
-                url: url,
-                type: 'allopathic',
-                slug: url.split('/')[url.split('/').length - 1],
+        let title = document.querySelector('.page-heading-1-l').innerText
+        let genericData = document.querySelector('.generic-data-container');
+
+        let other_combinations = document.querySelectorAll('.modal-body .row a.hoverable-block');
+        let innovators_monograph = document.querySelectorAll('a[target="_blank"].prsinf-child-btn');
+
+        let bn_link;
+
+        if (genericData && genericData.querySelector('.lang-btn')) {
+            bn_link = genericData.querySelector('.lang-btn').href
+        }
+
+        let headers = genericData.querySelectorAll('.ac-header')
+        let details = genericData.querySelectorAll('.ac-body')
+
+        let infoJson = [];
+        headers.forEach(function (item, i) {
+            infoJson.push({
+                title: header.innerText,
+                description: (details[i].innerHTML).toString()
             })
+        })
+
+        let combinations = []
+
+        if (other_combinations && other_combinations.length > 0) {
+            for (var comb of other_combinations) {
+                combinations.push({
+                    title: comb.innerText,
+                    url: comb.href,
+                    slug: comb.href.substring(comb.href.lastIndexOf('/') + 1),
+                })
+            }
+        }
+
+        let monograph = []
+
+        if (innovators_monograph && innovators_monograph.length > 0) {
+            for (var mon of innovators_monograph) {
+                monograph.push({
+                    // title: header.innerText,
+                    // description: (details[i].innerHTML).toString()
+                })
+            }
+        }
+
+        let url = document.location.origin + document.location.pathname
+
+        let data = {
+            title,
+            bn_link,
+            url,
+            slug: url.substring(url.lastIndexOf('/') + 1),
+            // description: JSON.stringify(infoJson),
+            monograph: JSON.stringify(monograph),
+            combinations: JSON.stringify(combinations),
         }
 
         return data;
@@ -60,12 +110,12 @@ async function extractedEvaluateCall(page) {
 }
 
 scrape().then((value) => {
-    // console.log(value)
+    console.log(value)
     console.log('fetched: ' + value.length);
 
-    Generic.bulkCreate(value).then((res) => {
-        console.log('inserted')
-    }).catch((err) => {
-        console.log(err)
-    })
+    // Generic.bulkCreate(value).then((res) => {
+    //     console.log('inserted')
+    // }).catch((err) => {
+    //     console.log(err)
+    // })
 });
