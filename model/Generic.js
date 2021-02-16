@@ -8,13 +8,23 @@ const Pharma = db.define('generics', {
     description: {
         type: Sequelize.STRING
     },
+    bn_link: {
+        type: Sequelize.STRING
+    },
     url: {
         type: Sequelize.STRING
     },
     slug: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        unique: true
     },
     type: {
+        type: Sequelize.STRING
+    },
+    monograph: {
+        type: Sequelize.STRING
+    },
+    combinations: {
         type: Sequelize.STRING
     },
 })
