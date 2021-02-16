@@ -1,8 +1,8 @@
 const puppeteer = require('puppeteer-core');
 const { chromiumPath, chromeConfig } = require('./config/chromePath')
-const Pharma = require('./model/Pharma')
+const Generic = require('./model/Generic')
 
-const crawlUrl = 'https://medex.com.bd/companies'
+const crawlUrl = 'https://medex.com.bd/brands/1'
 
 let scrape = async () => {
     const browser = await puppeteer.launch(chromeConfig)
@@ -16,6 +16,7 @@ let scrape = async () => {
     var maxPageNumber = 10; // this is hardcoded last catalogue page, you can set it dunamically if you wish
 
     results = results.concat(await extractedEvaluateCall(page));
+    // results = await extractedEvaluateCall(page);
 
     // this is where next button on page clicked to jump to another page
 
@@ -40,13 +41,16 @@ async function extractedEvaluateCall(page) {
     // this function should use async keyword in order to work and take page as argument
     return page.evaluate(() => {
         let data = [];
-        let elements = document.querySelectorAll('div[class="col-xs-12 data-row-top"]');
-
+        let elements = document.querySelectorAll('a.hoverable-block.darker');
+        // return elements;
         for (var element of elements) {
-            var url = element.children[0].href;
+            var url = element.href;
+
             data.push({
-                title: element.children[0].innerText,
+                title: element.querySelector('.dcind-title').innerText,
+                description: element.querySelector('.dcind').innerText,
                 url: url,
+                type: 'allopathic',
                 slug: url.split('/')[url.split('/').length - 1],
             })
         }
@@ -56,9 +60,10 @@ async function extractedEvaluateCall(page) {
 }
 
 scrape().then((value) => {
+    // console.log(value)
     console.log('fetched: ' + value.length);
 
-    Pharma.bulkCreate(value).then((res) => {
+    Generic.bulkCreate(value, { ignoreDuplicates: true }).then((res) => {
         console.log('inserted')
     }).catch((err) => {
         console.log(err)
