@@ -5,8 +5,8 @@ const Generic = require('./model/Generic')
 
 const crawlUrl = 'https://medex.com.bd/generics/'
 
-var minPage = 0;
-var maxPage = 1000;
+var minPage = 1759;
+var maxPage = 1800;
 
 // create a new progress bar instance and use shades_classic theme
 const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
@@ -20,11 +20,13 @@ let scrape = async () => {
 
     await gotoPage(page)
 
-    var results = [];
+    // var results = [];
 
-    results = results.concat(await extractedEvaluateCall(page));
+    // console.log(await extractedEvaluateCall(page))
 
-    while (minPage !== maxPage) {
+    let res = await store(await extractedEvaluateCall(page));
+
+    while ((minPage !== maxPage) && (minPage <= (maxPage + 1))) {
         minPage++
 
         // update the current value in your application..
@@ -32,19 +34,25 @@ let scrape = async () => {
 
         await Promise.all([
             gotoPage(page),
-            page.waitForNavigation({ waitUntil: 'networkidle2' }),
+            page.waitForNavigation({ waitUntil: 'load' }),
         ]);
 
-        results = results.concat(await extractedEvaluateCall(page));
+        await store(await extractedEvaluateCall(page));
+
+        // results = results.concat(await extractedEvaluateCall(page));
+    }
+
+    if (minPage == maxPage) {
+        bar1.stop()
     }
 
 
     browser.close();
-    return results;
+    return true;
 };
 
 async function gotoPage(page) {
-    let p = await page.goto(crawlUrl + minPage, { waitUntil: 'networkidle2', });
+    let p = await page.goto(crawlUrl + minPage, { waitUntil: 'load', timeout: 0 });
     if (p._status == 404) {
         minPage++
         return await gotoPage(page)
@@ -73,7 +81,7 @@ async function extractedEvaluateCall(page) {
         let details = genericData.querySelectorAll('.ac-body')
 
         let infoJson = [];
-        headers.forEach(function (item, i) {
+        headers.forEach(function (header, i) {
             infoJson.push({
                 title: header.innerText,
                 description: (details[i].innerHTML).toString()
@@ -124,11 +132,20 @@ scrape().then((value) => {
     // console.log(value)
     console.log('fetched: ' + value.length + '\n');
 
-    Generic.bulkCreate(value).then((res) => {
-        // stop the progress bar
-        bar1.stop();
-        console.log('\n inserted')
-    }).catch((err) => {
-        console.error('error')
-    })
+
 });
+
+
+async function store(value) {
+
+    let res = await Generic.create(value);
+    // stop the progress bar
+
+    if (res) {
+        console.log('\n inserted')
+    } else {
+        console.error('error')
+    }
+
+    return true
+}

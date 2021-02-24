@@ -1,7 +1,8 @@
-const Sequelize = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
+const Term = require('./Term')
 const db = require('./../config/db')
 
-const Pharma = db.define('generics', {
+const Generic = db.define('generics', {
     title: {
         type: Sequelize.STRING
     },
@@ -29,4 +30,10 @@ const Pharma = db.define('generics', {
     },
 })
 
-module.exports = Pharma
+Generic.hasMany(Term, {
+    as: 'Combinations',
+    foreignKey: 'term'
+})
+
+
+module.exports = Generic
