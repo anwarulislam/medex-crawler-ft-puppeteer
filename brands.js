@@ -5,8 +5,8 @@ const Brand = require('./model/Brand')
 
 const crawlUrl = 'https://medex.com.bd/brands/'
 
-var minPage = 1;
-var maxPage = 5;
+var minPage = 13105;
+var maxPage = 15000;
 
 // create a new progress bar instance and use shades_classic theme
 const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
@@ -23,20 +23,20 @@ let scrape = async () => {
     // var results = [];
 
     // console.log(await extractedEvaluateCall(page))
-    
+
     // let res = await store(await extractedEvaluateCall(page));
-    
+
     while ((minPage !== maxPage) && (minPage <= (maxPage + 1))) {
         minPage++
-        
+
         // update the current value in your application..
         bar1.update(minPage);
-        
+
         await Promise.all([
             gotoPage(page),
-            page.waitForNavigation({ waitUntil: 'load' }),
+            page.waitForNavigation({ waitUntil: 'load', timeout: 0 }),
         ]);
-        
+
         // console.log(await extractedEvaluateCall(page))
         await store(await extractedEvaluateCall(page));
 
@@ -110,7 +110,7 @@ async function extractedEvaluateCall(page) {
             for (var comb of other_combinations) {
                 combinations.push({
                     title: comb.firstChild.textContent.trim(),
-                    dosage_form: comb.querySelector('.sdfsa').innerText,
+                    dosage_form: comb.querySelector('.sdfsa') ? comb.querySelector('.sdfsa').innerText : null,
                     url: comb.href,
                     slug: (comb.href.substring(comb.href.lastIndexOf('/') + 1)).split('?')[0]
                 })
@@ -122,12 +122,23 @@ async function extractedEvaluateCall(page) {
         if (price_combinations && price_combinations.length > 0) {
             for (var price of price_combinations) {
                 let pack = price.querySelector('span.pack-size-info');
-                prices.push({
-                    unit_name: price.firstChild.textContent.split('৳')[0].trim(),
-                    price: price.firstChild.textContent.split('৳')[1].trim(),
-                    pack: pack ? pack.innerText.split('৳')[0].trim() : null,
-                    pack_price: pack ? pack.innerText.split('৳')[1].trim() : null,
-                })
+
+                var temp = {};
+
+                if (price.firstChild.textContent.includes('Not for sale')) {
+                    temp = null
+                } else {
+                    if (pack && pack.innerText) {
+                        temp.pack = pack ? pack.innerText.split('৳')[0].trim() : null;
+                        temp.pack_price = pack ? pack.innerText.split('৳')[1].trim() : null;
+                    }
+                    if (price.firstChild.textContent) {
+                        temp.unit_name = price.firstChild.textContent.split('৳')[0].trim()
+                        temp.price = price.firstChild.textContent.split('৳')[1].trim()
+                    }
+                }
+
+                prices.push(temp)
             }
         }
 
@@ -173,7 +184,7 @@ async function extractedEvaluateCall(page) {
 
 scrape().then((value) => {
     // console.log(value)
-    console.log('fetched: ' + value.length + '\n');
+    console.log('last fetched: ' + minPage + '\n');
 
 
 });
@@ -181,11 +192,14 @@ scrape().then((value) => {
 
 async function store(value) {
 
-    let res = await Brand.create(value);
+    let res = await Brand.findOrCreate({
+        where: { url: value.url },
+        defaults: value
+    })
     // stop the progress bar
 
     if (res) {
-        console.log('\n inserted')
+        // console.log('\n inserted')
     } else {
         console.error('error')
     }

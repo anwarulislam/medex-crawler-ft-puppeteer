@@ -18,7 +18,8 @@ const Brands = db.define('brands', {
         type: Sequelize.STRING
     },
     url: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        unique: true
     },
     slug: {
         type: Sequelize.STRING,

@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const Term = require('./Term')
 const db = require('./../config/db')
 
-const Generic = db.define('generics_old', {
+const Generic = db.define('generics', {
     title: {
         type: Sequelize.STRING
     },
