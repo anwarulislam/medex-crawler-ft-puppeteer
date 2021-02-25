@@ -2,7 +2,7 @@ const { Sequelize, DataTypes } = require('sequelize');
 const Term = require('./Term')
 const db = require('./../config/db')
 
-const Generic = db.define('generics', {
+const Generic = db.define('generics_old', {
     title: {
         type: Sequelize.STRING
     },
@@ -29,11 +29,5 @@ const Generic = db.define('generics', {
         type: Sequelize.STRING
     },
 })
-
-Generic.hasMany(Term, {
-    as: 'Combinations',
-    foreignKey: 'term'
-})
-
 
 module.exports = Generic

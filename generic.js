@@ -5,8 +5,8 @@ const Generic = require('./model/Generic')
 
 const crawlUrl = 'https://medex.com.bd/generics/'
 
-var minPage = 1759;
-var maxPage = 1800;
+var minPage = 901;
+var maxPage = 1000;
 
 // create a new progress bar instance and use shades_classic theme
 const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);

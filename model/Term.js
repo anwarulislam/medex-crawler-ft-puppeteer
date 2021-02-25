@@ -18,9 +18,4 @@ const Term = db.define('term_and_taxanomy', {
     }
 }, { timestamps: false })
 
-Term.belongsTo(Generic, {
-    as: 'Term',
-    foreignKey: 'term'
-})
-
 module.exports = Term
