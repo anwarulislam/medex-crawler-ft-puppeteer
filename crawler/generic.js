@@ -1,7 +1,7 @@
 const cliProgress = require('cli-progress');
 const puppeteer = require('puppeteer-core');
-const { chromiumPath, chromeConfig } = require('./config/chromePath')
-const Generic = require('./model/Generic')
+const { chromiumPath, chromeConfig } = require('../config/chromePath')
+const Generic = require('../model/Generic')
 
 const crawlUrl = 'https://medex.com.bd/generics/'
 

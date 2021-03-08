@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer-core');
-const { chromiumPath, chromeConfig } = require('./config/chromePath')
-const Pharma = require('./model/Pharma')
+const { chromiumPath, chromeConfig } = require('../config/chromePath')
+const Pharma = require('../model/Pharma')
 
 const crawlUrl = 'https://medex.com.bd/companies'
 
@@ -64,3 +64,7 @@ scrape().then((value) => {
         console.log(err)
     })
 });
+
+
+
+let pharmaAll = [71, 136, 1, 25, 16, 119, 155, 57, 50, 113, 110, 70, 2, 68, 154, 127, 21, 104, 131, 105, 116, 117, 165, 42, 82, 161, 171, 61, 143]

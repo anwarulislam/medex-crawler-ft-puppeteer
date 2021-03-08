@@ -1,12 +1,12 @@
 const cliProgress = require('cli-progress');
 const puppeteer = require('puppeteer-core');
-const { chromiumPath, chromeConfig } = require('./config/chromePath')
-const Brand = require('./model/Brand')
+const { chromiumPath, chromeConfig } = require('../config/chromePath')
+const Brand = require('../model/Brand')
 
 const crawlUrl = 'https://medex.com.bd/brands/'
 
-var minPage = 13105;
-var maxPage = 15000;
+var minPage = 28652;
+var maxPage = 30000;
 
 // create a new progress bar instance and use shades_classic theme
 const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
@@ -125,8 +125,8 @@ async function extractedEvaluateCall(page) {
 
                 var temp = {};
 
-                if (price.firstChild.textContent.includes('Not for sale')) {
-                    temp = null
+                if (price.firstChild.textContent.includes('Not for sale') || price.firstChild.textContent.includes('Price Unavailable')) {
+                    temp = price.firstChild.textContent
                 } else {
                     if (pack && pack.innerText) {
                         temp.pack = pack ? pack.innerText.split('৳')[0].trim() : null;
@@ -208,7 +208,23 @@ async function store(value) {
 }
 
 
-// UPDATE generics main, old_generics old
-// SET    main.type = old.type
-// WHERE  main.slug = old.slug
-// AND    main.type <> old.type;
+
+
+/* 
+
+@insert from another table
+
+INSERT INTO table1 ( column1, column2, someInt, someVarChar )
+SELECT  table2.column1, table2.column2, 8, 'some string etc.'
+FROM    table2
+WHERE   table2.ID = 7;
+
+
+@update based on another table data
+
+UPDATE generics main, old_generics old
+SET    main.type = old.type
+WHERE  main.slug = old.slug
+AND    main.type <> old.type;
+
+*/
